@@ -1,0 +1,108 @@
+#include<stdio.h>
+#include<stdlib.h>
+int main(void){
+	int temp;
+	int SphNum;
+	double TranMagn=1;
+	double ObjDist,ObjHeig,ObjAngle;
+	double ImaDist,ImaHeig;
+	 
+	printf("理想光学系统计算\n\n是否开始？\n") ;                                              //判断是否开始计算 
+	printf("继续——1  退出——0\n") ;
+	scanf("%d",&temp);
+
+	if(temp==0)                                                                               //执行退出指令 
+	exit(0);
+	
+	printf("\n请输入球面个数：\n");
+	scanf("%d", &SphNum);
+	
+	double SphRad[SphNum+1], RefIndex[SphNum+2], Distance[SphNum];
+	SphRad[0]=RefIndex[0]=Distance[0]=0;
+	
+	for(int i=1;i<=SphNum;i++){                                                              //for循环输入n个球面半径 
+		printf("请输入第%d个球面半径\n",i);
+		scanf("%lf",&SphRad[i]);
+	}
+	
+	printf("\n*****球面半径输入完毕，请输入折射率*****\n\n");
+	
+	for(int j=1;j<=SphNum+1;j++){                                                            //for循环输入n+1个折射率 
+		printf("请输入第%d个折射率\n",j);
+		scanf("%lf",&RefIndex[j]);
+	}
+	
+	printf("\n*****折射率输入完毕，请输入间距*****\n\n");
+
+	for(int k=1;k<=SphNum-1;k++){                                                           //for循环输入n-1个间距 
+		printf("请输入第%d个间距\n",k);
+		scanf("%lf",&Distance[k]);
+	}
+	
+	printf("\n*****结构参数输入完毕*****\n");
+	
+	int n=SphNum;                                                                           //计算组合光学系统的整体像方焦距以及工作距离 
+	double L[n+1],L1[n+1]; 
+	double ImaFocus[SphNum+1];                                                              //以数组的形式存储每个镜面的焦距 
+
+	L1[1]=SphRad[1]*RefIndex[2]/(RefIndex[2]-RefIndex[1]);                                  //计算出第一个镜面的焦距  
+	
+	if(n==1)
+	    printf("\n像方焦距f`=%d, 工作距离lF`=%d\n\n",L1[1],L1[1]);
+	else{
+		for(int k=1; k<n; k++){
+		L[k+1]=L1[k]-Distance[k];
+		L1[k+1]=RefIndex[k+2]/((RefIndex[k+2]-RefIndex[k+1])/SphRad[k+1]+RefIndex[k+1]/L[k+1]);   //根据公式逐一计算各个镜面的焦距 
+    	}
+    	 	
+    	ImaFocus[1]=L1[1];
+    	
+    	for(int i=2;i<=n;i++){
+    		ImaFocus[i]=ImaFocus[i-1]*L1[i]/L[i];                                            //组合光学系统整体的焦距由循环得出 
+		}
+		
+		printf("\n像方焦距f`=%f, 工作距离lF`=%f\n\n",ImaFocus[n], L1[n]);
+	}
+	
+	
+	printf("请输入物体到第一个面的物方截距：\n");                                            //计算以倾斜于光轴的光线经过组合光学系统的像的参数 
+    	scanf("%lf",&ObjDist);
+	printf("\n请输入物体的高度：\n");
+	    scanf("%lf",&ObjHeig);
+	printf("\n请输入物体到第一个面的物方倾角：\n");
+	    scanf("%lf",&ObjAngle);
+	  
+	
+    L[1]=ObjDist;                                                                           //计算第一个面的像方截距 
+	L1[1]=RefIndex[2]/((RefIndex[2]-RefIndex[1])/SphRad[1]+RefIndex[1]/L[1]);
+	
+	for(int k=1; k<n; k++){                                                                //循环得到每一个面的像方截距 
+		L[k+1]=L1[k]-Distance[k];
+		L1[k+1]=RefIndex[k+2]/((RefIndex[k+2]-RefIndex[k+1])/SphRad[k+1]+RefIndex[k+1]/L[k+1]);
+    }
+    ImaDist=L1[n];
+   
+	for(int j=1;j<=n; j++){                                                                //根据公式计算组合光学系统整体的横向放大倍率 
+		TranMagn=TranMagn*(L1[j]/L[j]);
+	}
+	TranMagn=TranMagn*RefIndex[1]/RefIndex[n+1];                                          //由横向放大倍率和物高得到最终的像高 
+	ImaHeig=ObjHeig*TranMagn;
+	
+   	double ImaAngle[SphNum+1],Height[SphNum];                                             //计算最终的像方倾角 
+   	
+    Height[1]=ObjDist*ObjAngle;                                                           //计算第一个面的 h和u` 
+   	ImaAngle[1]=ObjAngle+Height[1]/ImaFocus[1]; 
+   	
+   	for(int i=2;i<=n;i++){                                                               //根据递归循环得到最终的像方倾角 
+   		Height[i]=Height[i-1]-Distance[i-1]*ImaAngle[i-1];
+   		ImaAngle[i]=ImaAngle[i-1]+Height[i]/ImaFocus[i];
+	   }
+		
+	printf("\n像到最后一个面的距离l=%f, 像高=%f, 横向放大倍数=%f, 像方倾角=%f\n\n", ImaDist, ImaHeig,TranMagn,ImaAngle[n]);//输出最终的结果 
+	
+	getchar(); 
+	getchar(); 
+	
+	
+	return 0;  	
+} 
